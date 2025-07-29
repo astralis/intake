@@ -4,6 +4,9 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// 🔽 Import routes from server.js
+require('./server')(app);
+
 app.get('/', (req, res) => {
   res.send('Intake backend is running!');
 });
