@@ -7,6 +7,12 @@ app.use(express.json());
 // 🔽 Import routes from server.js
 require('./server')(app);
 
+// 🔍 Debug: List all registered routes
+console.log('Registered routes:', app._router.stack
+  .map(r => r.route && r.route.path)
+  .filter(Boolean)
+);
+
 app.get('/', (req, res) => {
   res.send('Intake backend is running!');
 });
