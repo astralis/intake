@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painter Law - Intake Triage (Fixed)</title>
+    <style>
+        :root {
+            --header-bg: #2c3e50;
+            --sidebar-bg: #f4f7f6;
+            --highlight: #3498db;
+            --text: #333;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Header */
+        header { background-color: var(--header-bg); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #f1c40f; }
+        .brand { font-size: 1.4rem; font-weight: bold; letter-spacing: 1px; }
+        .role { font-size: 0.9rem; color: #bdc3c7; }
+
+        /* Layout */
+        .main-container { display: flex; flex: 1; height: calc(100vh - 60px); }
+
+        /* Sidebar (Email List) */
+        .sidebar { width: 320px; background-color: var(--sidebar-bg); border-right: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; flex-shrink: 0;}
+        .folder-header { padding: 15px; font-weight: bold; color: #7f8c8d; font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid #ddd; }
+        
+        .email-item { padding: 15px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: background 0.2s; position: relative; }
+        .email-item:hover { background-color: #e8e8e8; }
+        .email-item.active { background-color: #d6eaf8; border-left: 5px solid var(--highlight); }
+        .email-item.unread .sender { font-weight: bold; color: black; }
+        
+        .sender { font-size: 1rem; margin-bottom: 5px; color: #444; }
+        .subject { font-size: 0.9rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .date { font-size: 0.75rem; color: #999; float: right; }
+
+        /* Reading Pane */
+        /* Added padding-bottom to ensure text clears the popup box when scrolling */
+        .viewer { flex: 1; padding: 40px; padding-bottom: 250px; overflow-y: auto; background-color: white; }
+        
+        /* Email Content Styling */
+        .email-header-block { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .meta { margin-bottom: 5px; font-size: 0.95rem; color: #555; }
+        .meta strong { color: #222; width: 60px; display: inline-block; }
+        
+        .instruction-box { background-color: #fff3cd; border: 1px solid #ffeeba; padding: 20px; border-radius: 5px; color: #856404; margin-bottom: 20px; }
+        
+        /* Message Body Styles */
+        .message-body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; white-space: pre-wrap; font-size: 1rem; }
+
+        /* Scoring Pad (Modified to be collapsible) */
+        .score-pad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            font-size: 0.9rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .score-header {
+            background-color: #34495e;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1a252f;
+        }
+
+        .score-header:hover { background-color: #3e5871; }
+        
+        .score-content {
+            padding: 15px;
+        }
+
+        .score-pad.minimized {
+            height: 40px; /* Only show header */
+            width: 200px;
+        }
+
+        .score-pad ul { padding-left: 20px; margin: 0; font-size: 0.85rem; line-height: 1.5; color: #bdc3c7; }
+        .score-pad li { margin-bottom: 8px; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">Painter Law Firm <span style="color:#f1c40f;">INTAKE</span></div>
+    <div class="role">User: Candidate_01 | Date: Jan 12, 2026</div>
+</header>
+
+<div class="main-container">
+    <div class="sidebar">
+        <div class="folder-header">Inbox (5 New Inquiries)</div>
+        
+        <div class="email-item active unread" onclick="loadEmail(0, this)">
+            <span class="date">8:00 AM</span>
+            <div class="sender">Robert (Boss)</div>
+            <div class="subject">INSTRUCTIONS: Triage these messges</div>
+        </div>
+
+        <div class="email-item unread" onclick="loadEmail(1, this)">
+            <span class="date">Yesterday</span>
+            <div class="sender">Jennifer Miller</div>
+            <div class="subject">Need help - my husband died</div>
+        </div>
+
+        <div class="email-item unread" onclick="loadEmail(2, this)">
+            <span class="date">Yesterday</span>
+            <div class="sender">Sarah Carter</div>
+            <div class="subject">Surgery mistake / complications</div>
+        </div>
+
+        <div class="email-item unread" onclick="loadEmail(3, this)">
+            <span class="date">Jan 10</span>
+            <div class="sender">Beth Wilson</div>
+            <div class="subject">Mother injured at Encompass</div>
+        </div>
+
+        <div class="email-item unread" onclick="loadEmail(4, this)">
+            <span class="date">Jan 09</span>
+            <div class="sender">Anthony Rodriguez</div>
+            <div class="subject">Questions about lung cancer diagnosis</div>
+        </div>
+
+        <div class="email-item unread" onclick="loadEmail(5, this)">
+            <span class="date">Jan 09</span>
+            <div class="sender">Tom Smith</div>
+            <div class="subject">Looking for a lawyer in Houston</div>
+        </div>
+    </div>
+
+    <div class="viewer" id="email-content">
+        </div>
+</div>
+
+<div class="score-pad" id="scorePad">
+    <div class="score-header" onclick="toggleScore()">
+        Robert's Criteria
+        <span id="toggle-icon">▼</span>
+    </div>
+    <div class="score-content">
+        <ul>
+            <li><strong style="color:#f1c40f">High Value:</strong> Wage earner death, catastrophic injury, "Easy" liability (falls/bedsores).</li>
+            <li><strong style="color:#e74c3c">Red Flags:</strong> Known risks (punctures), > 1.5 years old, Public Hospitals, Out of State.</li>
+        </ul>
+        <div style="margin-top: 15px; font-weight: bold; color: white; border-top: 1px solid #555; padding-top: 10px;">
+            Task: Rank each 1-10.
+        </div>
+    </div>
+</div>
+
+<script>
+    const emails = [
+        {
+            subject: "INSTRUCTIONS: Triage these messages",
+            from: "Robert",
+            to: "Intake Specialist",
+            body: `<div class="instruction-box">
+                <p><strong>Team,</strong></p>
+                <p>We need to be picky. Review the 5 intakes below. I need you to rank them <strong>1 to 10</strong> (10 = Accept immediately).</p>
+                <p><strong>Warning:</strong> These emails are messy. You have to hunt for the facts. Don't be fooled by the sad stories—look for the <strong>liability</strong> and the <strong>dates</strong>.</p>
+                <p><strong>Remember our Rules:</strong></p>
+                <ol>
+                    <li><strong>Damages are Key:</strong> We want catastrophic injuries (life-long care) or Death of a wage earner (dependents).</li>
+                    <li><strong>"Easy" Wins:</strong> Hospital falls w/ surgery, bedsores, pharmacy errors.</li>
+                    <li><strong>Location:</strong> Texas only. Private facilities preferred.</li>
+                    <li><strong>Timing:</strong> Must be within <strong>1.5 years</strong>.</li>
+                    <li><strong>Standard of Care:</strong> Watch out for "known risks" like nicks/punctures—we usually reject those unless sepsis involved.</li>
+                </ol>
+            </div>`
+        },
+        {
+            // CASE 1: The "Unicorn" (Heart Attack / Wrongful Death)
+            subject: "Need help - my husband died",
+            from: "Jennifer Miller <jen.miller82@gmail.com>",
+            to: "Intake",
+            body: `<div class="message-body">Hello,
+
+I don't really know how to start this. My sister told me I should contact a lawyer but I've been hesitating because I'm just so overwhelmed right now with the funeral and the kids.
+
+My husband Mark was only 42. He was the strongest person I knew. He worked as a foreman for a construction company here in Houston and never missed a day of work. Back in August, on the 15th I think, he came home early because his chest was hurting and his left arm felt weird. He was sweating a lot. I got scared so I drove him to the ER at Memorial Hermann.
+
+We waited for like 3 hours. Finally a doctor saw him for maybe 5 minutes? They did an EKG I think, but the doctor came back and said Mark just had bad acid reflux from the spicy food he ate at lunch. He literally rolled his eyes at us. He gave Mark a prescription for some stomach meds and sent us home.
+
+Mark died in his sleep that night. The autopsy said it was a massive heart attack. 
+
+I am left here with three kids under the age of 10 and no income. I just feel like if they had kept him there, he would still be here. Can you help us?
+
+Jennifer</div>`
+        },
+        {
+            // CASE 2: The "Standard of Care" Trap (Bladder Nick)
+            subject: "Surgery mistake / complications",
+            from: "Sarah Carter <scarter_teach@yahoo.com>",
+            to: "Intake",
+            body: `<div class="message-body">To whom it may concern,
+
+I am writing to see if I have a case against Dr. Evans at Baylor Scott & White in Dallas. 
+
+I went in for a hysterectomy last summer (June 2025). It was supposed to be a routine robotic surgery. When I woke up, I had a catheter in and they told me there was a "complication." Apparently, the doctor cut my bladder by mistake during the surgery!
+
+They had to call in a urologist to stitch it up while I was still under. Because of his mistake, I had to go home with a catheter bag for two full weeks. As a school teacher, I was lucky it was summer break, but it was still humiliating and painful. I couldn't go to the pool or do anything with my family.
+
+I'm back at work now and physically I guess I'm okay, but I'm still furious. The doctor had the nerve to tell me this is a "known risk" of the surgery. I don't believe him. I shouldn't have to pay for the extra urologist bill when HE made the mistake.
+
+I want to sue for pain and suffering and the extra medical bills.
+
+Sarah Carter</div>`
+        },
+        {
+            // CASE 3: The "Easy Win" (Drop / Fracture)
+            subject: "Mother injured at Encompass",
+            from: "Beth Wilson <bwilson@outlook.com>",
+            to: "Intake",
+            body: `<div class="message-body">Hi,
+
+My mother Betty (78) was staying at the Encompass Rehab hospital in Katy recovering from a knee replacement. She was actually doing really well and was supposed to come home for Thanksgiving.
+
+On the night of Nov 10th, she rang the call button to go to the bathroom. A nurse came in (I don't know her name) and tried to transfer my mom from the bed to the wheelchair by herself. My mom is not a small woman and the care plan says "Two Person Assist."
+
+The nurse dropped her. My mom fell right on her side and screamed in pain. Turns out she fractured her femur. They had to rush her to surgery to put a rod in. 
+
+She has completely regressed. She's bedridden now and the doctors say she might not walk independently again. I am so angry. They admitted to me in the hallway they were short-staffed that night.
+
+Do we have a case?
+
+Beth</div>`
+        },
+        {
+            // CASE 4: The "Time/Public" Trap (Cancer)
+            subject: "Questions about lung cancer diagnosis",
+            from: "Anthony Rodriguez <arod1970@gmail.com>",
+            to: "Intake",
+            body: `<div class="message-body">Good morning,
+
+My name is Anthony Rodriguez. I live in San Antonio. I was recently diagnosed with Stage 4 lung cancer and the doctors say it is terminal. 
+
+Here is the thing - I've been going to University Health System for my checkups for years. I requested my records last week because I wanted a second opinion. I was looking through them and I found a report from an X-Ray I had done way back on **April 10, 2024**.
+
+The report clearly says "Suspicious nodule on right lung - recommend CT scan immediately."
+
+NO ONE ever told me. No one called me. My doctor never mentioned it. I went 21 months thinking I was fine while this cancer was growing. If they had told me back in 2024, maybe I would have had a chance. Now I'm dying.
+
+I know it's been almost two years since that X-ray, but I just found out about the mistake last week. Does that count?
+
+Please let me know,
+Anthony</div>`
+        },
+        {
+            // CASE 5: The "Jurisdiction" Trap (Oklahoma)
+            subject: "Looking for a lawyer in Houston",
+            from: "Tom Smith <tsmith_oil@hotmail.com>",
+            to: "Intake",
+            body: `<div class="message-body">Hello,
+
+I found your website on Google and saw you handle medical malpractice. I currently live in Houston (moved here last month to be closer to family for help) and I need a tough lawyer.
+
+I am 40 years old and I'm in a wheelchair. I used to work in the oil fields. Last September, I hurt my back and went to St. John Medical Center in Tulsa for surgery on a herniated disc.
+
+After the surgery, I couldn't feel my legs and I lost control of my bladder. I told the nurses for two days that something was wrong but they ignored me. Finally, the doctor came back in and rushed me to emergency surgery to relieve pressure on my nerves (Cauda Equina I think it's called?). 
+
+But it was too late. I am permanently paralyzed from the waist down.
+
+Since I live in Houston now, I want to hire a Houston lawyer to sue them. This has ruined my life.
+
+Tom Smith</div>`
+        }
+    ];
+
+    function loadEmail(index, element) {
+        // Highlight logic
+        document.querySelectorAll('.email-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        element.classList.remove('unread');
+
+        const email = emails[index];
+        const container = document.getElementById('email-content');
+        
+        container.innerHTML = `
+            <div class="email-header-block">
+                <div class="meta"><strong>From:</strong> ${email.from}</div>
+                <div class="meta"><strong>Subject:</strong> ${email.subject}</div>
+                <div class="meta"><strong>To:</strong> ${email.to}</div>
+            </div>
+            ${email.body}
+        `;
+    }
+
+    function toggleScore() {
+        const pad = document.getElementById('scorePad');
+        const icon = document.getElementById('toggle-icon');
+        pad.classList.toggle('minimized');
+        
+        if(pad.classList.contains('minimized')) {
+            icon.innerText = '▲';
+        } else {
+            icon.innerText = '▼';
+        }
+    }
+
+    // Load first email
+    loadEmail(0, document.querySelector('.email-item'));
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexCase Pro - Case #26-0012: OWEN</title>
+    <style>
+        :root {
+            --bg-dark: #1a252f;
+            --bg-light: #f4f6f9;
+            --sidebar-width: 260px;
+            --header-height: 55px;
+            --accent: #2980b9;
+            --highlight: #f39c12;
+            --text-main: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--bg-light);
+        }
+
+        /* Header */
+        header {
+            height: var(--header-height);
+            background-color: var(--bg-dark);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .logo { font-weight: 700; font-size: 1.3rem; letter-spacing: 0.5px; }
+        .logo span { color: var(--highlight); }
+        .user-info { font-size: 0.85rem; color: #bdc3c7; }
+
+        /* Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - var(--header-height));
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #34495e;
+        }
+
+        .case-header {
+            padding: 20px;
+            background-color: #34495e;
+            border-bottom: 1px solid #4e6075;
+        }
+
+        .case-title { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 5px; }
+        .case-sub { font-size: 0.8rem; color: #bdc3c7; display: block; margin-bottom: 2px;}
+
+        .folder-label {
+            padding: 15px 20px 5px 20px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .doc-list { list-style: none; padding: 0; margin: 0; }
+
+        .doc-item {
+            padding: 10px 20px;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            color: #ecf0f1;
+        }
+
+        .doc-item:hover { background-color: #3e536b; }
+        .doc-item.active { background-color: #34495e; border-left: 4px solid var(--highlight); color: white; font-weight: 600;}
+        .doc-icon { margin-right: 12px; font-size: 1.1rem; }
+        .unread-dot { height: 8px; width: 8px; background-color: var(--highlight); border-radius: 50%; margin-left: auto; }
+
+        /* Main Viewer */
+        .viewer {
+            flex: 1;
+            background-color: #bdc3c7;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .paper {
+            background-color: white;
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.8in;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 11pt;
+            position: relative;
+            color: #333;
+        }
+
+        /* Specific Document Styles */
+        .hidden { display: none; }
+        
+        /* Intake Form */
+        .form-header { text-align: center; border-bottom: 3px solid #2c3e50; padding-bottom: 15px; margin-bottom: 25px; }
+        .form-section { background: #ecf0f1; padding: 5px 10px; font-weight: bold; border-left: 4px solid #2c3e50; margin: 20px 0 10px 0; font-size: 0.9rem; }
+        .form-row { display: flex; margin-bottom: 10px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+        .form-label { font-weight: 700; width: 200px; flex-shrink: 0; color: #555; }
+        .form-value { font-family: 'Courier New', Courier, monospace; color: #2c3e50; flex: 1; font-weight: 600;}
+        .handwritten { font-family: 'Brush Script MT', 'Comic Sans MS', cursive; color: #00008b; font-size: 1.3rem; letter-spacing: 0.5px; transform: rotate(-1deg); display: inline-block;}
+        
+        /* Emails */
+        .email-client { border: 1px solid #ddd; background: white; min-height: 10in; }
+        .email-top-bar { background-color: #f5f5f5; padding: 20px; border-bottom: 1px solid #ddd; }
+        .email-meta-row { margin-bottom: 6px; font-family: Arial, sans-serif; font-size: 0.9rem; color: #555; }
+        .email-meta-row strong { color: #333; width: 80px; display: inline-block; }
+        .email-content { padding: 40px; font-family: Arial, sans-serif; line-height: 1.6; color: #222; }
+        .email-sig { color: #777; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; }
+
+        /* Robert's Email Special Styling */
+        .internal-email { background-color: #fff9e6; } /* Light yellow tint for internal */
+
+        /* Letter */
+        .letter-body { font-family: 'Times New Roman', Times, serif; line-height: 1.6; font-size: 12pt; }
+        .letter-head { text-align: center; margin-bottom: 50px; }
+        .lh-firm { font-weight: bold; font-size: 16pt; text-transform: uppercase; letter-spacing: 2px; }
+        .lh-addr { font-size: 10pt; color: #555; margin-top: 5px; }
+
+        /* Stamps */
+        .stamp-draft {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            border: 4px solid #e74c3c;
+            color: #e74c3c;
+            font-weight: 900;
+            padding: 10px 20px;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            transform: rotate(-15deg);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">LexCase<span>PRO</span></div>
+    <div class="user-info">Logged in: Intake_Candidate_01 | <strong>Painter Law Firm</strong></div>
+</header>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="case-header">
+            <span class="case-title">OWEN, David</span>
+            <span class="case-sub">Re: Mary Owen (Dec.)</span>
+            <span class="case-sub">File #: 26-0012-MM</span>
+        </div>
+
+        <div class="folder-label">Internal Communications</div>
+        <ul class="doc-list">
+            <li class="doc-item active" onclick="showDoc('email-robert')">
+                <span class="doc-icon">🔒</span> Instructions (Robert)
+                <div class="unread-dot"></div>
+            </li>
+        </ul>
+
+        <div class="folder-label">Case Documents</div>
+        <ul class="doc-list">
+            <li class="doc-item" onclick="showDoc('intake')">
+                <span class="doc-icon">📝</span> Intake Sheet
+            </li>
+            <li class="doc-item" onclick="showDoc('draft-letter')">
+                <span class="doc-icon">📄</span> DRAFT: Ch. 74 Notice
+            </li>
+        </ul>
+
+        <div class="folder-label">Client Correspondence</div>
+        <ul class="doc-list">
+            <li class="doc-item" onclick="showDoc('email-trap')">
+                <span class="doc-icon">📧</span> RE: Clarification (Urgent)
+            </li>
+            <li class="doc-item" onclick="showDoc('email-fluff1')">
+                <span class="doc-icon">📧</span> Photos sent
+            </li>
+            <li class="doc-item" onclick="showDoc('email-fluff2')">
+                <span class="doc-icon">📧</span> Parking question
+            </li>
+        </ul>
+
+        <div style="margin-top: auto; padding: 20px; font-size: 0.75rem; color: #7f8c8d; border-top: 1px solid #34495e;">
+            Server Time: <span id="clock"></span><br>
+            Database: Texas_Production_04
+        </div>
+    </div>
+
+    <div class="viewer">
+        
+        <div id="email-robert" class="paper email-client internal-email">
+            <div class="email-top-bar">
+                <div class="email-meta-row"><strong>From:</strong> Robert &lt;robert@painterfirm.com&gt;</div>
+                <div class="email-meta-row"><strong>To:</strong> Intake Specialist</div>
+                <div class="email-meta-row"><strong>Date:</strong> Mon, Jan 12, 2026 at 8:30 AM</div>
+                <div class="email-meta-row"><strong>Subject:</strong> New Case: Owen (Review ASAP)</div>
+            </div>
+            <div class="email-content">
+                <p>I just finished the intake meeting with Mr. Owen. It's a sad case. His wife died from sepsis after a gallbladder surgery. </p>
+                <p>I’ve filled out the intake sheet. Based on what he told me, the surgery was last September (2025), so we are well within the statute of limitations and our 1.5-year internal rule. </p>
+                <p>The negligence here isn't the nicked bowel—that's a known risk. The case is the <strong>failure to diagnose the sepsis</strong> in the days following. Dr. Thorne apparently ignored her calls.</p>
+                <p><strong>Please do the following:</strong><br>
+                1. Review the file.<br>
+                2. Proof the Chapter 74 Notice Letter I started. <br>
+                3. Get it ready to mail out today.</p>
+                <p>I'm heading to court. Handle it.</p>
+                <div class="email-sig">
+                    Robert<br>
+                    <strong>Painter Law Firm</strong>
+                </div>
+            </div>
+        </div>
+
+        <div id="intake" class="paper hidden">
+            <div class="stamp-draft" style="color: green; border-color: green; opacity: 0.6;">SCANNED</div>
+            <div class="form-header">
+                <h2>POTENTIAL CASE INTAKE</h2>
+                <div style="font-size: 0.9rem;">Painter Law Firm - Medical Malpractice Division</div>
+            </div>
+            
+            <div class="form-row"><span class="form-label">Date:</span> <span class="form-value">Jan 10, 2026</span></div>
+            <div class="form-row"><span class="form-label">Interviewer:</span> <span class="form-value">Robert</span></div>
+            
+            <div class="form-section">CLIENT INFO</div>
+            <div class="form-row"><span class="form-label">Plaintiff:</span> <span class="form-value">David Owen (Husband)</span></div>
+            <div class="form-row"><span class="form-label">Decedent:</span> <span class="form-value">Mary Owen</span></div>
+            
+            <div class="form-section">TIMELINE (Per Client Stmt)</div>
+            <div class="form-row"><span class="form-label">Hospital:</span> <span class="form-value">St. Joseph's</span></div>
+            <div class="form-row"><span class="form-label">Surgeon:</span> <span class="form-value">Dr. James Thorne</span></div>
+            <div class="form-row"><span class="form-label">Procedure:</span> <span class="form-value">Lap Chole (Gallbladder)</span></div>
+            
+            <div class="form-row"><span class="form-label">Date of Surgery:</span> <span class="form-value handwritten">September 12, 2024 ??</span></div>
+            <div class="form-row"><span class="form-label">Date of Death:</span> <span class="form-value">October 22, 2024</span></div>
+            
+            <div class="form-section">CASE EVALUATION</div>
+            <div class="form-row"><span class="form-label">Negligence Theory:</span> <span class="form-value">Failure to rescue. Delayed diagnosis of bowel perf leading to septic shock.</span></div>
+            <div class="form-row"><span class="form-label">Within 1.5 Yr Rule?</span> <span class="form-value handwritten">YES (Approx 16 months)</span></div>
+            
+            <div style="border: 2px dashed #7f8c8d; padding: 15px; margin-top: 20px; color: #555;">
+                <strong>Notes:</strong><br>
+                <span class="handwritten">Client is credible. He says Dr. Thorne's office dodged their calls for 4 days post-op while she had fever. By the time she went to ER, she was already septic.</span>
+            </div>
+        </div>
+
+        <div id="email-trap" class="paper hidden email-client">
+            <div class="email-top-bar">
+                <div class="email-meta-row"><strong>From:</strong> David Owen &lt;dowen1965@outlook.com&gt;</div>
+                <div class="email-meta-row"><strong>To:</strong> Painter Law Intake &lt;intake@painterfirm.com&gt;</div>
+                <div class="email-meta-row"><strong>Date:</strong> Jan 11, 2026 at 9:45 PM</div>
+                <div class="email-meta-row"><strong>Subject:</strong> RE: Clarification on dates</div>
+            </div>
+            <div class="email-content">
+                <p>Robert,</p>
+                <p>I was looking through Mary’s calendar tonight. My head has been in a fog. I think I told you the surgery was in September because that’s when she went back into the hospital for the last time. </p>
+                <p><strong>The actual gallbladder surgery was March 12, 2024.</strong> She spent the whole spring and summer fighting that infection in rehab facilities before she crashed again in October. </p>
+                <p>Also, I found a check stub from the insurance company. They sent us $2,500 back in April 2024 for "inconvenience." I cashed it to pay for her meds. I hope that doesn't count as a settlement?</p>
+                <p>Please let me know if this changes anything.</p>
+                <p>David</p>
+            </div>
+        </div>
+
+        <div id="email-fluff1" class="paper hidden email-client">
+            <div class="email-top-bar">
+                <div class="email-meta-row"><strong>From:</strong> David Owen &lt;dowen1965@outlook.com&gt;</div>
+                <div class="email-meta-row"><strong>To:</strong> Painter Law Intake &lt;intake@painterfirm.com&gt;</div>
+                <div class="email-meta-row"><strong>Date:</strong> Jan 11, 2026 at 10:30 PM</div>
+                <div class="email-meta-row"><strong>Subject:</strong> Photos sent</div>
+            </div>
+            <div class="email-content">
+                <p>Hi,</p>
+                <p>I just sent a Dropbox link with photos of her in the ICU. They are hard to look at. You guys come highly recommended by my neighbor. He said if anyone can help, it's Robert.</p>
+                <p>Thanks again.</p>
+            </div>
+        </div>
+
+        <div id="email-fluff2" class="paper hidden email-client">
+            <div class="email-top-bar">
+                <div class="email-meta-row"><strong>From:</strong> David Owen &lt;dowen1965@outlook.com&gt;</div>
+                <div class="email-meta-row"><strong>To:</strong> Painter Law Intake &lt;intake@painterfirm.com&gt;</div>
+                <div class="email-meta-row"><strong>Date:</strong> Jan 12, 2026 at 7:15 AM</div>
+                <div class="email-meta-row"><strong>Subject:</strong> Parking question</div>
+            </div>
+            <div class="email-content">
+                <p>Quick question - when I come back to sign the contract, can I park in the garage or is it street parking only? I don't walk very well.</p>
+                <p>David</p>
+            </div>
+        </div>
+
+        <div id="draft-letter" class="paper hidden">
+            <div class="stamp-draft">DRAFT</div>
+            <div class="letter-body">
+                <div class="letter-head">
+                    <div class="lh-firm">PAINTER LAW FIRM</div>
+                    <div class="lh-addr">1200 Smith Street, Houston, Texas 77002</div>
+                </div>
+                <p>January 12, 2026</p>
+                <p><strong>VIA CERTIFIED MAIL RRR</strong></p>
+                <p>
+                    Dr. James Thorne<br>
+                    Medical Plaza I<br>
+                    Houston, TX 77030
+                </p>
+                <p><strong>RE: Notice of Health Care Liability Claim (Chapter 74)</strong><br>
+                Patient: Mary Owen (Deceased)</p>
+                <p>Dear Dr. Thorne:</p>
+                <p>Please be advised that this firm represents David Owen, surviving spouse of Mary Owen. Pursuant to Chapter 74 of the Texas Civil Practice and Remedies Code, we are providing notice of a health care liability claim.</p>
+                <p>This claim arises from the medical care provided on or about <strong>September 12, 2024</strong>. Specifically, your failure to timely diagnose and treat a bowel perforation following a laparoscopic cholecystectomy resulted in Mrs. Owen developing sepsis, which ultimately caused her death.</p>
+                <p>We are currently obtaining all relevant medical records...</p>
+                <br>
+                <p>Sincerely,</p>
+                <p>Robert Painter</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Real-time clock
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Document switching logic
+    function showDoc(docId) {
+        const papers = document.querySelectorAll('.paper');
+        papers.forEach(p => p.classList.add('hidden'));
+        document.getElementById(docId).classList.remove('hidden');
+
+        const items = document.querySelectorAll('.doc-item');
+        items.forEach(i => i.classList.remove('active'));
+
+        // Simple mapping for demo purposes
+        if(docId === 'email-robert') items[0].classList.add('active');
+        if(docId === 'intake') items[1].classList.add('active');
+        if(docId === 'draft-letter') items[2].classList.add('active');
+        if(docId === 'email-trap') items[3].classList.add('active');
+        if(docId === 'email-fluff1') items[4].classList.add('active');
+        if(docId === 'email-fluff2') items[5].classList.add('active');
+    }
+</script>
+
+</body>
+</html>

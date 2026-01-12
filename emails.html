@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painter Law - Inbox Triage</title>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --list-width: 350px;
+            --header-height: 60px;
+            --blue: #0078d4;
+            --bg-select: #c7e0f4;
+            --read-bg: #f3f2f1;
+        }
+
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* The "Phone" Overlay */
+        .phone-overlay {
+            background-color: #fff8dc;
+            border-bottom: 2px solid #e1d29e;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            color: #444;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .phone-icon { font-size: 1.5rem; margin-right: 15px; }
+        .boss-text { font-weight: 600; color: #b91c1c; }
+
+        /* App Layout */
+        .app-container { display: flex; flex: 1; height: calc(100vh - 70px); }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: #f0f0f0; padding-top: 20px; border-right: 1px solid #ddd; }
+        .folder { padding: 10px 20px; cursor: pointer; color: #333; display: flex; justify-content: space-between; }
+        .folder.active { background-color: #dadada; font-weight: bold; }
+        .folder:hover { background-color: #e1e1e1; }
+        .badge { background: var(--blue); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+
+        /* Email List */
+        .email-list { width: var(--list-width); overflow-y: auto; border-right: 1px solid #ddd; background: white; }
+        .email-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.1s; }
+        .email-item:hover { background-color: #f9f9f9; }
+        .email-item.selected { background-color: var(--bg-select); border-left: 4px solid var(--blue); }
+        .email-item.unread .sender, .email-item.unread .subject { font-weight: bold; color: #000; }
+        
+        .sender { font-size: 1rem; color: #333; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .date { font-size: 0.75rem; color: #666; font-weight: normal; }
+        .subject { font-size: 0.9rem; margin-bottom: 4px; color: #444; }
+        .snippet { font-size: 0.8rem; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Reading Pane */
+        .reading-pane { flex: 1; padding: 40px; overflow-y: auto; background: white; }
+        .pane-header { border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px; }
+        .pane-subject { font-size: 1.5rem; margin-bottom: 10px; color: #201f1e; }
+        .pane-meta { color: #605e5c; font-size: 0.9rem; margin-bottom: 5px; }
+        .pane-body { line-height: 1.6; color: #323130; font-size: 1rem; white-space: pre-wrap; }
+        .attachment { margin-top: 30px; padding: 10px; background: #f3f2f1; border: 1px solid #e1dfdd; display: inline-block; font-size: 0.9rem; border-radius: 4px; color: var(--blue); }
+
+        /* Utility */
+        .hidden { display: none; }
+        .flag { color: #d13438; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-overlay">
+        <div class="phone-icon">📱</div>
+        <div>
+            <strong>MESSAGE FROM ROBERT (BOSS):</strong><br>
+            "I'm stuck in a depo. <span class="boss-text">1. Prepare the Smith Mediation binder. 2. Clear this inbox.</span> Don't call me unless the building is on fire."
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="folder active">Inbox <span class="badge">19</span></div>
+            <div class="folder">Sent Items</div>
+            <div class="folder">Drafts</div>
+            <div class="folder">Junk Email</div>
+            <div class="folder">Archive</div>
+        </div>
+
+        <div class="email-list" id="email-list-container">
+            </div>
+
+        <div class="reading-pane" id="reading-pane">
+            <div style="text-align: center; color: #888; margin-top: 100px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+                <br><br>Select an item to read
+            </div>
+        </div>
+    </div>
+
+<script>
+    // DATA: The 19 Emails
+    // "id" matches the array index. "urgent" is for internal logic if needed.
+    const emails = [
+        {
+            id: 0,
+            sender: "Ciox Health (Records)",
+            date: "10:45 AM",
+            subject: "ACTION REQUIRED: Payment Declined for Request #99201",
+            snippet: "Your credit card ending in 4022 was declined for the Memorial Hermann records...",
+            body: "To: Painter Law Firm\nRe: Request #99201 (Patient: M. Owen)\n\nNOTICE OF NON-PAYMENT\n\nYour credit card ending in 4022 was declined this morning for the amount of $1,240.50. \n\nPer our policy, if payment is not updated within 24 hours, this request will be CANCELLED and you will lose your place in the queue. These are the certified inpatient records you requested with expedited status.\n\nPlease click here to update payment method immediately.",
+            urgent: true
+        },
+        {
+            id: 1,
+            sender: "Harris County District Clerk",
+            date: "10:42 AM",
+            subject: "Amended DCO: Smith v. Methodist",
+            snippet: "NOTICE: The Docket Control Order has been amended by the Judge...",
+            body: "CAUSE NO. 2024-55920\nSMITH vs. METHODIST HOSPITAL\n\nCounsel,\n\nThe Court has sua sponte amended the Docket Control Order. \n\nIMPORTANT: The trial setting has been moved UP to next month (Feb 15, 2026). Mediation must be completed by this Friday.\n\nPlease acknowledge receipt.",
+            urgent: true
+        },
+        {
+            id: 2,
+            sender: "Sarah Smith (Client)",
+            date: "10:30 AM",
+            subject: "Re: Mediation tomorrow",
+            snippet: "I don't think I can do this. I'm freaking out.",
+            body: "Robert,\n\nI can't come tomorrow. I can't face that doctor again. I've been throwing up all morning just thinking about it. \n\nI think I just want to drop the case. I can't take this pressure. Please just tell them I quit. Don't call me, I turned my phone off.\n\nSarah",
+            urgent: true
+        },
+        {
+            id: 3,
+            sender: "Texas Bar CLE",
+            date: "10:15 AM",
+            subject: "Last chance for Ethics Credit!",
+            snippet: "Don't miss out on our webinar 'The Ethics of AI in Law'...",
+            body: "Dear Member,\n\nAre you short on Ethics hours? Join us for a 1-hour webinar today at noon. \n\nRegister now.",
+            urgent: false
+        },
+        {
+            id: 4,
+            sender: "Robert (Sent from iPhone)",
+            date: "9:55 AM",
+            subject: "Did you send the binder?",
+            snippet: "Need to know if the Smith binder is digital or physical.",
+            body: "Quick question - did you print the Smith binder or just put it on the iPad? \n\nIf you haven't done it yet, make sure you include the deposition highlighted lines.",
+            urgent: false
+        },
+        {
+            id: 5,
+            sender: "Defense Counsel (Jones)",
+            date: "9:45 AM",
+            subject: "Missing signature - Rule 11",
+            snippet: "Attached is the Rule 11 agreement. You forgot to sign page 2.",
+            body: "Robert,\n\nWe can't vacate the hearing until I get the signed Rule 11. The one you sent yesterday was missing the signature on page 2. \n\nPlease sign and return ASAP so I can tell the court we don't need to appear.",
+            urgent: true
+        },
+        {
+            id: 6,
+            sender: "Office Manager",
+            date: "9:30 AM",
+            subject: "Kitchen Duty / Fridge Cleanout",
+            snippet: "Everything not labeled will be tossed at 5pm.",
+            body: "Team,\n\nJust a reminder that the fridge is being cleaned out today at 5:00 PM. Label your food or lose it.\n\nThanks,\nAdmin",
+            urgent: false
+        },
+        {
+            id: 7,
+            sender: "LexisNexis Billing",
+            date: "9:15 AM",
+            subject: "Invoice Available: January 2026",
+            snippet: "Your new invoice is ready for review.",
+            body: "Your invoice #4492 is ready. Auto-pay is scheduled for Jan 25th.",
+            urgent: false
+        },
+        {
+            id: 8,
+            sender: "New Lead (Website)",
+            date: "9:00 AM",
+            subject: "Inquiry: Surgical Sponge left inside",
+            snippet: "Name: John Doe. Phone: 555-0199. Description: doctors left a sponge...",
+            body: "New Website Submission:\n\nName: John Doe\nIncident Date: 2 years ago (approx)\nDescription: I had surgery and they left a sponge inside me. I just found out yesterday because of pain.\n\nPlease contact me.",
+            urgent: false
+        },
+        {
+            id: 9,
+            sender: "Amazon Business",
+            date: "8:45 AM",
+            subject: "Your order has shipped",
+            snippet: "1 item: 'Coffee K-Cups Variety Pack'...",
+            body: "Your package is on the way. Expected delivery: Tomorrow.",
+            urgent: false
+        },
+        {
+            id: 10,
+            sender: "Court Reporter Services",
+            date: "8:30 AM",
+            subject: "Need a videographer?",
+            snippet: "We have the best rates in Houston for legal video.",
+            body: "Counsel,\n\nDo you have depositions coming up? We offer competitive rates.",
+            urgent: false
+        },
+        {
+            id: 11,
+            sender: "David Owen (Client)",
+            date: "Yesterday",
+            subject: "Just checking in",
+            snippet: "Hope you guys are doing well. No rush.",
+            body: "Hi Robert,\n\nJust wanted to say thanks again for taking the case. I'm feeling a bit better today. No rush on anything, just wanted to say hi.",
+            urgent: false
+        },
+        {
+            id: 12,
+            sender: "IT Support (Phishing Test)",
+            date: "Yesterday",
+            subject: "URGENT: Password Expiry",
+            snippet: "Click here to reset your password immediately.",
+            body: "This is a test. If you had clicked the link, you would have failed the security audit.",
+            urgent: false
+        },
+        {
+            id: 13,
+            sender: "State Farm Claims",
+            date: "Yesterday",
+            subject: "Ack: Letter of Rep (Claim 8829)",
+            snippet: "We have received your letter of representation.",
+            body: "We acknowledge your letter. Adjuster assigned: Mike Smith.",
+            urgent: false
+        },
+        {
+            id: 14,
+            sender: "Paralegal Division",
+            date: "Yesterday",
+            subject: "Happy Hour next Thursday!",
+            snippet: "Join us at The Rustic for drinks and networking.",
+            body: "Come meet fellow paralegals!",
+            urgent: false
+        },
+        {
+            id: 15,
+            sender: "E-Filing Texas",
+            date: "Yesterday",
+            subject: "Accepted: Plaintiff's Original Petition",
+            snippet: "Your filing in Cause 2026-112 has been accepted.",
+            body: "Filing status: ACCEPTED.\nEnvelope ID: 99281.",
+            urgent: false
+        },
+        {
+            id: 16,
+            sender: "Mom",
+            date: "Yesterday",
+            subject: "Sunday dinner?",
+            snippet: "Are you coming over this weekend?",
+            body: "Call me when you can.",
+            urgent: false
+        },
+        {
+            id: 17,
+            sender: "Westlaw",
+            date: "Yesterday",
+            subject: "Webinar: Research efficienty",
+            snippet: "Learn how to use the new AI search tools.",
+            body: "Sign up today.",
+            urgent: false
+        },
+        {
+            id: 18,
+            sender: "Linkedin",
+            date: "Yesterday",
+            subject: "3 people viewed your profile",
+            snippet: "See who's looking at you.",
+            body: "Upgrade to Premium to see who viewed you.",
+            urgent: false
+        }
+    ];
+
+    function renderList() {
+        const container = document.getElementById('email-list-container');
+        container.innerHTML = '';
+        emails.forEach(email => {
+            const div = document.createElement('div');
+            div.className = `email-item ${email.id < 6 ? 'unread' : ''}`; // First 6 unread
+            div.onclick = () => loadEmail(email.id, div);
+            div.innerHTML = `
+                <div class="sender">
+                    <span>${email.sender}</span>
+                    <span class="date">${email.date}</span>
+                </div>
+                <div class="subject">${email.subject} ${email.urgent ? '<span class="flag">🚩</span>' : ''}</div>
+                <div class="snippet">${email.snippet}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function loadEmail(id, element) {
+        // Highlight logic
+        document.querySelectorAll('.email-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        element.classList.remove('unread'); // Mark as read
+
+        const email = emails.find(e => e.id === id);
+        const pane = document.getElementById('reading-pane');
+        
+        pane.innerHTML = `
+            <div class="pane-header">
+                <div class="pane-subject">${email.subject}</div>
+                <div class="pane-meta"><strong>From:</strong> ${email.sender}</div>
+                <div class="pane-meta"><strong>Date:</strong> Today, ${email.date}</div>
+                <div class="pane-meta"><strong>To:</strong> Intake Specialist</div>
+            </div>
+            <div class="pane-body">${email.body}</div>
+            ${id === 1 ? '<div class="attachment">📎 <strong>Amended_DCO.pdf</strong> (124 KB)</div>' : ''}
+            ${id === 5 ? '<div class="attachment">📎 <strong>Rule11_Agreement.pdf</strong> (45 KB)</div>' : ''}
+            ${id === 0 ? '<div style="margin-top:20px; text-align:center;"><button style="background:#d13438; color:white; border:none; padding:10px 20px; cursor:pointer;">UPDATE PAYMENT METHOD</button></div>' : ''}
+        `;
+    }
+
+    // Init
+    renderList();
+
+</script>
+
+</body>
+</html>
